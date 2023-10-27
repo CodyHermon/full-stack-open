@@ -21,7 +21,8 @@ const App = () => {
   const [selected, setSelected] = useState(0);
   const [points, setPoints] = useState(new Uint8Array(anecdotes.length));
 
-  const mostVotedAnecdote = anecdotes[points.indexOf(Math.max(...points))];
+  const mostVotedAnecdoteIndex = points.indexOf(Math.max(...points));
+  const mostVotedAnecdote = anecdotes[mostVotedAnecdoteIndex];
 
   const handleVote = () => {
     const newArray = [...points];
@@ -47,6 +48,7 @@ const App = () => {
       </div>
       <Header text='Anecdote with most votes' />
       <p>{mostVotedAnecdote}</p>
+      <p>has {points[mostVotedAnecdoteIndex]} </p>
     </div>
   );
 };
