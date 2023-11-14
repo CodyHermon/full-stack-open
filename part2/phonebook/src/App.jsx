@@ -46,7 +46,9 @@ const App = () => {
       number: newNumber,
     };
 
-    const existingPerson = persons.find((person) => person.name === newName);
+    const existingPerson = persons.find(
+      (person) => person.name.toLowerCase() === newName.toLowerCase()
+    );
 
     if (existingPerson) {
       if (
@@ -57,6 +59,15 @@ const App = () => {
         personsService
           .update(existingPerson.id, personObject)
           .then((returnedPerson) => {
+            if (!returnedPerson) {
+              setErrorMessage(
+                `Information of '${existingPerson.name}' has already been removed from server`
+              );
+              setTimeout(() => {
+                setErrorMessage(null);
+              }, 5000);
+              return;
+            }
             setPersons(
               persons.map((person) =>
                 person.id !== existingPerson.id ? person : returnedPerson
@@ -65,30 +76,39 @@ const App = () => {
             setNotificationMessage(
               `Changed ${newName}'s number to ${newNumber}`
             );
+            setNewName('');
+            setNewNumber('');
             setTimeout(() => {
               setNotificationMessage(null);
             }, 5000);
           })
           .catch((e) => {
-            console.log(e);
-            setErrorMessage(
-              `Information of '${existingPerson.name}' has already been removed from server`
-            );
-            setTimeout(() => {
-              setErrorMessage(null);
-            }, 5000);
+            if (e.response.status === 400) {
+              setErrorMessage(e.response.data.error);
+              setTimeout(() => {
+                setErrorMessage(null);
+              }, 5000);
+            }
           });
 
         return;
       }
     } else {
-      personsService.create(personObject).then((returnedPerson) => {
-        setNotificationMessage(`Added ${newName}`);
-        setTimeout(() => {
-          setNotificationMessage(null);
-        }, 5000);
-        setPersons(persons.concat(returnedPerson));
-      });
+      personsService
+        .create(personObject)
+        .then((returnedPerson) => {
+          setNotificationMessage(`Added ${newName}`);
+          setTimeout(() => {
+            setNotificationMessage(null);
+          }, 5000);
+          setPersons(persons.concat(returnedPerson));
+        })
+        .catch((e) => {
+          setErrorMessage(e.response.data.error);
+          setTimeout(() => {
+            setErrorMessage(null);
+          }, 5000);
+        });
     }
   };
 
@@ -113,7 +133,7 @@ const App = () => {
   };
 
   const phoneList = persons.filter((person) =>
-    person.name.toLowerCase().includes(filter.toLowerCase())
+    person?.name.toLowerCase().includes(filter.toLowerCase())
   );
 
   return (
