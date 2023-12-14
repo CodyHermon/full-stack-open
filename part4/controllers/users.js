@@ -7,6 +7,19 @@ usersRouter.post('/', async (request, response) => {
   const { username, name, password } = request.body;
 
   const saltRounds = 10;
+
+  if (password.length < 4) {
+    return response
+      .status(401)
+      .json({ error: 'password must be at least 4 characters' });
+  }
+
+  if (username.length < 4) {
+    return response
+      .status(401)
+      .json({ error: 'username must be at least 4 characters' });
+  }
+
   const passwordHash = await bcruypt.hash(password, saltRounds);
 
   const user = new User({
